@@ -1114,27 +1114,38 @@ updateUI();
 <script src="./sacred-bowl-audio.js"></script>
 
 <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js");
-  });
-}
+window.addEventListener("DOMContentLoaded", () => {
 
-const audioGate = document.getElementById("audio-gate");
-const enableAudioBtn = document.getElementById("enable-audio-btn");
+  const audioGate = document.getElementById("audio-gate");
+  const enableAudioBtn = document.getElementById("enable-audio-btn");
 
-if (audioGate && enableAudioBtn) {
+  if (!audioGate || !enableAudioBtn) {
+    console.log("Audio gate elements not found");
+    return;
+  }
+
   enableAudioBtn.addEventListener("click", async () => {
+
     try {
+
       await Tone.start();
-      await window.SacredBowlAudio.initAudio(S);
-      audioGate.classList.add("hidden");
-      console.log("Audio enabled");
+
+      if (window.SacredBowlAudio && typeof window.SacredBowlAudio.initAudio === "function") {
+        await window.SacredBowlAudio.initAudio(S);
+      }
+
+      audioGate.style.display = "none";
+
     } catch (e) {
+
       console.log("Audio enable failed", e);
+
     }
+
   });
-}
+
+});
 </script>
+
 </body>
 </html>
