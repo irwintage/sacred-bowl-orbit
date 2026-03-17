@@ -1,4 +1,4 @@
-const CACHE_NAME = "sacred-bowl-cache-v2";
+const CACHE_NAME = "sacred-bowl-cache-v5";
 
 const ASSETS = [
   "./",
