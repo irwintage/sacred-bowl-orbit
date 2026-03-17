@@ -1,0 +1,71 @@
+Sacred Bowl Orbit
+
+Chrysasynth — Standalone Edition
+
+Thank you for downloading this tool.
+
+Sacred Bowl Orbit is a meditative resonance instrument
+from the Chrysasynth lab.
+
+It generates harmonic singing bowl tones
+that evolve through orbital motion and spatial resonance.
+
+HOW TO USE
+
+Extract the folder
+
+Open "index.html" in your browser
+
+Click "Resonate" to activate audio
+
+Drag the resonance point around the bowl
+
+Explore different bowls and modulation controls
+
+Enable Orbit mode for continuous harmonic motion.
+
+CONTROLS
+
+Resonate — starts the bowl resonance
+Orbit — enables automatic circular motion
+Stop — stops the sound
+
+Intensity — controls the energy of the bowl
+Space — controls reverb and spatial depth
+Orbit Speed — controls the motion of the resonance point
+
+BOWLS
+
+Root — grounding resonance
+Sacral — warm flowing tone
+Solar — radiant harmonic clarity
+Heart — open balanced resonance
+Throat — bright harmonic articulation
+Third Eye — expansive overtone field
+Crown — ethereal celestial resonance
+
+Each bowl has its own harmonic structure
+and spectral response.
+
+COMPATIBILITY
+
+Works in modern browsers:
+
+• Chrome
+• Edge
+• Safari
+• Firefox
+
+Desktop and mobile supported.
+
+Note: audio starts after user interaction
+due to browser audio policies.
+
+CHRYSASYNTH
+
+Chrysasynth is a collection of experimental sound tools
+and generative audio instruments.
+
+Explore more tools:
+
+https://chrysasynth.com
