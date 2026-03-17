@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Sacred Bowl Orbit — Chrysasynth</title>
@@ -87,7 +89,12 @@ body{
   display:flex;
   justify-content:center;
   align-items:flex-start;
-  padding:12px;
+  min-height:100vh;
+  padding:
+    max(8px, env(safe-area-inset-top))
+    8px
+    max(8px, env(safe-area-inset-bottom))
+    8px;
 }
 
 .app{
@@ -557,9 +564,96 @@ input[type=range]::-moz-range-thumb{
     font-size:9px;
   }
 }
+.audio-gate{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:
+    max(16px, env(safe-area-inset-top))
+    16px
+    max(16px, env(safe-area-inset-bottom))
+    16px;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(120,240,255,0.10), transparent 28%),
+    radial-gradient(circle at 50% 70%, rgba(195,140,255,0.10), transparent 34%),
+    linear-gradient(180deg, rgba(6,8,18,0.96), rgba(5,7,13,0.98));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.audio-gate.hidden{
+  display:none;
+}
+
+.audio-gate-card{
+  width:min(100%, 360px);
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,0.10);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(120,240,255,0.10), transparent 40%),
+    radial-gradient(circle at 100% 0%, rgba(195,140,255,0.10), transparent 34%),
+    rgba(13,16,28,0.92);
+  box-shadow:0 20px 60px rgba(0,0,0,0.42);
+  padding:20px 18px;
+  text-align:center;
+}
+
+.audio-gate-brand{
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--a2);
+  opacity:0.78;
+  margin-bottom:10px;
+}
+
+.audio-gate-title{
+  font-family:var(--font-display);
+  font-size:24px;
+  line-height:1.1;
+  color:var(--t1);
+  margin-bottom:10px;
+}
+
+.audio-gate-text{
+  font-size:13px;
+  line-height:1.5;
+  color:var(--t2);
+  margin-bottom:18px;
+}
+
+.audio-gate-btn{
+  width:100%;
+  min-height:46px;
+  border:none;
+  border-radius:14px;
+  cursor:pointer;
+  font-family:var(--font-ui);
+  font-size:14px;
+  font-weight:600;
+  color:#08111a;
+  background:linear-gradient(135deg, var(--a1), var(--a2));
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08) inset,
+    0 10px 26px rgba(120,240,255,0.16);
+}
 </style>
 </head>
 <body>
+  <div id="audio-gate" class="audio-gate">
+  <div class="audio-gate-card">
+    <div class="audio-gate-brand">Chrysasynth</div>
+    <div class="audio-gate-title">Sacred Bowl Orbit</div>
+    <div class="audio-gate-text">
+      Tap once to enable audio and enter the instrument.
+    </div>
+    <button id="enable-audio-btn" class="audio-gate-btn">Enable Audio</button>
+  </div>
+</div>
 <div class="app">
   <div class="topbar">
     <div class="topbar-left">
@@ -1018,30 +1112,29 @@ updateUI();
 
 <script src="./tone.js"></script>
 <script src="./sacred-bowl-audio.js"></script>
+
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js");
   });
 }
-</script>
-  <script>
 
-const enableAudio = async () => {
+const audioGate = document.getElementById("audio-gate");
+const enableAudioBtn = document.getElementById("enable-audio-btn");
 
-  try {
-
-    await Tone.start()
-    console.log("Audio unlocked")
-
-  } catch(e) {
-    console.log("Audio error", e)
-  }
-
+if (audioGate && enableAudioBtn) {
+  enableAudioBtn.addEventListener("click", async () => {
+    try {
+      await Tone.start();
+      await window.SacredBowlAudio.initAudio(S);
+      audioGate.classList.add("hidden");
+      console.log("Audio enabled");
+    } catch (e) {
+      console.log("Audio enable failed", e);
+    }
+  });
 }
-
-document.body.addEventListener("click", enableAudio, { once:true })
-
 </script>
 </body>
 </html>
