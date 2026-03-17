@@ -1025,5 +1025,23 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+  <script>
+
+const enableAudio = async () => {
+
+  try {
+
+    await Tone.start()
+    console.log("Audio unlocked")
+
+  } catch(e) {
+    console.log("Audio error", e)
+  }
+
+}
+
+document.body.addEventListener("click", enableAudio, { once:true })
+
+</script>
 </body>
 </html>
