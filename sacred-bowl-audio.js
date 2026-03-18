@@ -5,9 +5,13 @@ let filter = null
 let reverb = null
 let masterVol = null
 
-// ── Volumes par harmonique : fondamentale bien présente,
-//    harmoniques nettement atténuées pour éviter l'agressivité
-const HARM_VOLUMES = [-6, -18, -30]
+// Fondamentale bien présente, harmoniques nettement en retrait
+const HARM_VOLUMES = [-7, -20, -32]
+
+// Petit helper
+function rand(min, max){
+  return min + Math.random() * (max - min)
+}
 
 function buildOscs(bowl){
 
@@ -15,20 +19,17 @@ function buildOscs(bowl){
 
   return bowl.harmRatios.map((ratio, i) => {
 
-    // Fondamentale en sinus, harmoniques en triangle (plus doux que sine pur)
     const osc = new Tone.Oscillator({
       frequency: bowl.baseFreq * ratio,
-      type: i === 0 ? "sine" : "triangle"
+      type: i === 0 ? "sine" : "triangle",
+      detune: rand(-4, 4) // légère instabilité naturelle
     })
 
     osc.volume.value = HARM_VOLUMES[i] ?? -36
-
     osc.connect(filter)
 
     return osc
-
   })
-
 }
 
 async function initAudio(state){
@@ -37,57 +38,65 @@ async function initAudio(state){
 
   await Tone.start()
 
-  // Volume master légèrement réduit pour éviter la saturation
-  masterVol = new Tone.Volume(-18).toDestination()
+  // Master plus bas pour éviter toute sensation dure
+  masterVol = new Tone.Volume(-24).toDestination()
 
   reverb = new Tone.Reverb({
-    decay: 9,
-    preDelay: 0.05,
-    wet: 0.55
+    decay: 10,
+    preDelay: 0.06,
+    wet: 0.58
   })
 
   await reverb.ready
-
   reverb.connect(masterVol)
 
-  // Filtre passe-bas plus fermé au départ pour tempérer les aigus
+  // Lowpass doux, plus "bol" que "synth drone"
   filter = new Tone.Filter({
     type: "lowpass",
-    frequency: 700,
-    rolloff: -24,   // pente plus douce qu'une coupure brutale
-    Q: 0.7
+    frequency: 650,
+    rolloff: -24,
+    Q: 0.65
   })
 
   filter.connect(reverb)
 
   oscs = buildOscs(state.bowl)
-
   state.audioReady = true
-
 }
 
 function startOscs(state){
 
   if(!state || !state.audioReady) return
 
+  // fade-in pour éviter l'entrée trop brusque
+  masterVol.volume.value = -40
+
   oscs.forEach(o => {
     try{ o.start() }catch(e){}
   })
 
-  state.playing = true
+  const startupVol = -30 + (state.intensity * 10)
+  masterVol.volume.rampTo(startupVol, 1.6)
 
+  state.playing = true
 }
 
 function stopOscs(state){
 
   if(!state) return
 
-  oscs.forEach(o => {
-    try{ o.stop() }catch(e){}
-  })
+  // arrêt un peu plus propre
+  try{
+    masterVol.volume.rampTo(-40, 0.4)
+  }catch(e){}
+
+  setTimeout(() => {
+    oscs.forEach(o => {
+      try{ o.stop() }catch(e){}
+    })
+  }, 380)
 
   state.playing = false
-
 }
 
 function disposeOscs(){
@@ -97,7 +106,6 @@ function disposeOscs(){
   })
 
   oscs = []
-
 }
 
 async function switchBowl(state, bowl){
@@ -108,19 +116,20 @@ async function switchBowl(state, bowl){
 
   if(wasPlaying) stopOscs(state)
 
-  disposeOscs()
+  setTimeout(() => {
+    disposeOscs()
 
-  state.bowl = bowl
+    state.bowl = bowl
 
-  if(!state.audioReady) return
+    if(!state.audioReady) return
 
-  oscs = buildOscs(bowl)
+    oscs = buildOscs(bowl)
 
-  if(wasPlaying){
-    startOscs(state)
-    updateSound(state)
-  }
-
+    if(wasPlaying){
+      startOscs(state)
+      updateSound(state)
+    }
+  }, wasPlaying ? 420 : 0)
 }
 
 function updateSound(state){
@@ -128,53 +137,52 @@ function updateSound(state){
   if(!state || !state.audioReady || !state.playing) return
 
   const t =
-    (((state.angle % (Math.PI*2)) + Math.PI*2) % (Math.PI*2)) / (Math.PI*2)
+    (((state.angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2)
 
-  // Courbe smoothstep — donne un mouvement plus organique
+  // courbe douce, plus organique
   const curved = t * t * (3 - 2 * t)
 
-  // ── Fréquence du filtre ──────────────────────────────────────────────
-  // On bride le max à 2× la fondamentale pour éviter les harmoniques
-  // trop criardes (problème principal du Heart à 341 Hz)
-  const fMin = state.bowl.filterRange[0]
+  // Filtre adapté au bol mais plafonné pour éviter les aigus agressifs
+  const fMin = Math.max(180, state.bowl.baseFreq * 0.75)
   const fMax = Math.min(
     state.bowl.filterRange[1],
-    state.bowl.baseFreq * 2.2   // plafond relatif à la fondamentale
+    state.bowl.baseFreq * 2.15
   )
 
   const fFreq = fMin + (fMax - fMin) * curved
 
-  // Légère dérive pour simuler le jeu de la baguette
-  const drift = Math.sin(Date.now() * 0.00045) * 1.5
+  // double dérive lente pour casser le drone figé
+  const drift =
+    Math.sin(Date.now() * 0.00033) * 10 +
+    Math.sin(Date.now() * 0.00008) * 16
 
-  filter.frequency.rampTo(fFreq + drift, 0.18)
+  filter.frequency.rampTo(fFreq + drift, 0.22)
 
-  // Q modéré — évite la résonance perçante
-  const qVal = 0.5 + curved * 0.4
-  filter.Q.rampTo(qVal, 0.14)
+  // Q très doux
+  const qVal = 0.45 + curved * 0.35
+  filter.Q.rampTo(qVal, 0.16)
 
-  // ── Volume master ────────────────────────────────────────────────────
-  // Plage [-28, -16] dB : plus confortable que l'ancienne [-22, -10]
-  const targetVol = -28 + (state.intensity * 12)
-  masterVol.volume.rampTo(targetVol, 0.12)
+  // respiration lente du master
+  const targetVol = -30 + (state.intensity * 12)
+  const breath = Math.sin(Date.now() * 0.00052) * 1.6
+  masterVol.volume.rampTo(targetVol + breath, 0.2)
 
-  // ── Reverb ───────────────────────────────────────────────────────────
+  // Reverb
   const wet =
     state.bowl.reverbRange[0] +
     (state.bowl.reverbRange[1] - state.bowl.reverbRange[0]) * state.space
 
-  reverb.wet.rampTo(wet, 0.22)
+  reverb.wet.rampTo(wet, 0.24)
 
   state.pulse = Math.min(1, state.pulse + 0.04)
-
 }
 
 function getAudioDebug(){
   return {
-    hasFilter:    !!filter,
-    hasReverb:    !!reverb,
+    hasFilter: !!filter,
+    hasReverb: !!reverb,
     hasMasterVol: !!masterVol,
-    oscCount:     oscs.length
+    oscCount: oscs.length
   }
 }
 
