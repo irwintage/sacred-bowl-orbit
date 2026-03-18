@@ -1,10 +1,13 @@
-const CACHE_NAME = "sacred-bowl-cache-v5";
+const CACHE_NAME = "sacred-bowl-cache-v6";
 
 const ASSETS = [
   "./",
   "./index.html",
+  "./manifest.json",
   "./tone.js",
   "./sacred-bowl-audio.js",
+  "./icon-192.png",
+  "./icon-512.png",
 
   "./fonts/cinzel-v26-latin-regular.woff2",
   "./fonts/cinzel-v26-latin-500.woff2",
