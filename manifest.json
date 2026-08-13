@@ -4,8 +4,8 @@
   "description": "Meditative resonance instrument by Chrysasynth",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#05070d",
-  "theme_color": "#0a0d16",
+  "background_color": "#0d0f12",
+  "theme_color": "#0d0f12",
   "orientation": "portrait",
   "icons": [
     {
