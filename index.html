@@ -1139,23 +1139,24 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   enableAudioBtn.addEventListener("click", async () => {
+    enableAudioBtn.disabled = true;
+    enableAudioBtn.textContent = "Enabling…";
 
     try {
+      if (!window.Tone) {
+        throw new Error("Tone.js not loaded");
+      }
 
       await Tone.start();
 
-      if (window.SacredBowlAudio && typeof window.SacredBowlAudio.initAudio === "function") {
-        await window.SacredBowlAudio.initAudio(S);
-      }
-
+      // Important: enter the app immediately after browser audio unlock.
+      // The full SacredBowl audio engine is initialized when Resonate is pressed.
       audioGate.style.display = "none";
-
     } catch (e) {
-
-      console.log("Audio enable failed", e);
-
+      console.error("Audio enable failed", e);
+      enableAudioBtn.disabled = false;
+      enableAudioBtn.textContent = "Audio error · Retry";
     }
-
   });
 
 });
